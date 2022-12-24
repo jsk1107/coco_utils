@@ -20,13 +20,47 @@ class CocoUtils(COCO):
         self.dataset = dataset
         self.createIndex()
 
-    def del_category(self):
-        pass
+    def del_category(self, catIds=[], catNms=[]):
+        catIds = catIds if self._isArrayLike(catIds) else [catIds]
+        catNms = catNms if self._isArrayLike(catNms) else [catNms]
+
+        if (len(catIds) == 0 and len(catNms) == 0) or (len(catIds) != 0 and len(catNms) != 0):
+            raise Exception('Only one of catIds and catNms can be received as an argument.')
+
+        categories = self.dataset['categories']
+        annotations = self.dataset['annotations']
+
+        if len(catIds) == 0 and len(catNms) != 0:
+            catIds = self.getCatIds(catNms=catNms)
+
+        cnt = 0
+        # del category in categories
+        idx = 0
+        while idx <= len(categories) - 1:
+            if categories[idx]['id'] in catIds:
+                del categories[idx]
+                continue
+            idx += 1
+        # del annotation in annotations
+        idx = 0
+        while idx <= len(annotations) - 1:
+            if annotations[idx]['category_id'] in catIds:
+                del annotations[idx]
+                cnt += 1
+                continue
+            idx += 1
+
+        print(f'{cnt} is deleted from annotations')
+        print(f're-indexing...')
+        self.createIndex()
 
     def adj_category(self):
         pass
 
     def add_category(self):
+        pass
+
+    def sort_id(self):
         pass
 
     def split_train_val_test(self):
@@ -38,6 +72,9 @@ class CocoUtils(COCO):
     def transform_coco2pascal(self):
         pass
 
+    def _isArrayLike(self, obj):
+        return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
+
 if __name__ == '__main__':
     PATH = "/home/ubuntu/data/annotations/instances_val2017.json"
     IMAGE_PATH = "/home/ubuntu/data/val2017/000000579900.jpg"
@@ -45,9 +82,14 @@ if __name__ == '__main__':
     with open(PATH, 'r') as f:
         dataset = json.load(f)
 
-
+    # dog, 18
     coco = CocoUtils(dataset)
-    print(isinstance(coco, CocoUtils))
+    print(coco.loadCats(20))
+    coco.del_category(20)
+    print(coco.loadCats(20))
+
+    # coco.del_category(catIds=18)
+    # print(isinstance(coco, CocoUtils))
     # coco = COCO(PATH)
     #
     # img = Image.open(IMAGE_PATH).convert('RGB')
