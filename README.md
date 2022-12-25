@@ -19,7 +19,6 @@ PATH = '{your_coco_json_file}'
 coco_util = CocoUtils(PATH)
 ```
 
-Even if you have already opened a COCO Json file, you can create a class instance.
 
 ```python
 import json
@@ -29,6 +28,9 @@ with open(PATH, 'r') as f:
     coco = json.load(f)
 coco_util = CocoUtils(coco)
 ```
+
+- Even if you have already opened a COCO Json file, you can create a class instance.
+- Of course, all functions provided by pycocotools are also available.
 
 ### delete category
 ```python
