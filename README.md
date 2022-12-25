@@ -6,7 +6,8 @@ Using this, you will be able to process coco json files easily.
 ## Install
 You only need to install the pycocotools.
 ```Shell
-pip install pycocotools
+$ git clone https://github.com/jsk1107/coco_utils.git
+$ pip install pycocotools
 ```
 
 ## Usage
