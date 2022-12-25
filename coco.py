@@ -3,8 +3,10 @@
 # Original author: jsk1107
 
 import json
-from pycocotools.coco import COCO
 import time
+import random
+import os
+from pycocotools.coco import COCO
 
 class CocoUtils(COCO):
     def __init__(self, annotation_file=None):
@@ -25,6 +27,7 @@ class CocoUtils(COCO):
         self.createIndex()
 
     def del_category(self, catNms=[], catIds=[]):
+        st = time.time()
         catNms = catNms if isinstance(catNms, list) else [catNms]
         catIds = catIds if self._isArrayLike(catIds) else [catIds]
 
@@ -54,12 +57,14 @@ class CocoUtils(COCO):
                 continue
             idx += 1
 
-        print(f'{cnt} is deleted from annotations')
+        print(f'the number of {cnt} is deleted from annotations')
         print(f're-indexing...')
         self.createIndex()
+        print(f'Done (t={time.time() - st:.2f}s)')
 
     def adj_category(self, bf_catNms=[], af_catNms=[]):
         print('Adjust categories ... ')
+        st = time.time()
         bf_catNms = bf_catNms if isinstance(bf_catNms, list) else [bf_catNms]
         af_catNms = af_catNms if isinstance(af_catNms, list) else [af_catNms]
 
@@ -91,7 +96,7 @@ class CocoUtils(COCO):
                         continue
                     annotation['category_id'] = af_id[0]
                     cnt += 1
-                print(f'"{bf_catNm}": {cnt} annotation info has been adjusted to "{af_catNm}"')
+                print(f'"{bf_catNm}": annotation info of the number of {cnt} has been adjusted to "{af_catNm}"')
 
                 cat_idx = 0
                 while cat_idx <= len(categories) - 1:
@@ -103,7 +108,10 @@ class CocoUtils(COCO):
 
         print(f're-indexing...')
         self.createIndex()
+        print(f'Done (t={time.time() - st:.2f}s)')
+
     def add_category(self, catNms=[]):
+        st = time.time()
         catNms = catNms if isinstance(catNms, list) else [catNms]
         catIds = self.getCatIds(catNms=catNms)
         if len(catIds) != 0:
@@ -113,15 +121,68 @@ class CocoUtils(COCO):
         last_id = categories[-1]['id']
         for catNm in catNms:
             last_id += 1
-            categories.extend({'id': last_id, 'supercategory': catNm, 'name': catNm})
-
+            categories.append({'id': last_id, 'supercategory': catNm, 'name': catNm})
         print(f're-indexing...')
         self.createIndex()
+        print(f'Done (t={time.time() - st:.2f}s)')
+
     def sort_id(self):
         pass
 
-    def split_train_val_test(self):
-        pass
+    def split_train_val_test(self, val_ratio=.3, test_ratio=None, save_dir=None, set_seed=None):
+        print('split data...')
+        if set_seed is not None:
+            random.seed(set_seed)
+
+        st = time.time()
+        all_imgIds = self.getImgIds()
+        random.shuffle(all_imgIds)
+        total_img = len(all_imgIds)
+        train_ratio = 1 - val_ratio - test_ratio if test_ratio is not None else 1 - val_ratio
+        train_idx = int(total_img * train_ratio)
+        val_idx = int(total_img * val_ratio)
+        train_imgIds = all_imgIds[:train_idx]
+
+        if test_ratio is not None:
+            val_imgIds = all_imgIds[train_idx:train_idx + val_idx]
+            test_imgIds = all_imgIds[train_idx + val_idx:]
+        else:
+            val_imgIds = all_imgIds[train_idx:]
+            test_imgIds = []
+
+        train_dataset = self._create_coco_format(train_imgIds)
+        val_dataset = self._create_coco_format(val_imgIds)
+        test_dataset = self._create_coco_format(test_imgIds)
+
+        if save_dir is None:
+            save_dir = ''
+        with open(os.path.join(save_dir, 'instatnce_default_train.json'), 'w') as f:
+                json.dump(train_dataset, f, indent=2)
+        with open(os.path.join(save_dir, 'instatnce_default_val.json'), 'w') as f:
+                json.dump(val_dataset, f, indent=2)
+
+        if len(test_dataset) != 0:
+            with open(os.path.join(save_dir, 'instatnce_default_test.json'), 'w') as f:
+                json.dump(test_dataset, f, indent=2)
+
+        print(f'Done (t={time.time() - st:.2f}s)')
+
+
+    def _create_coco_format(self, imgIds=[]):
+        if len(imgIds) == 0:
+            return {}
+
+        imgs_info = self.loadImgs(imgIds)
+        annotations_info = self.loadAnns(self.getAnnIds(imgIds))
+
+        coco_format = {}
+        coco_format['info'] = self.dataset['info']
+        coco_format['licenses'] = self.dataset['licenses']
+        coco_format['categories'] = self.dataset['categories']
+        coco_format['images'] = imgs_info
+        coco_format['annotations'] = annotations_info
+
+        return coco_format
 
     def transform_pascal2coco(self):
         pass
@@ -151,13 +212,10 @@ if __name__ == '__main__':
     # "name": "bus"
 
     coco = CocoUtils(dataset)
-    coco.adj_category(["clock", "teddy bear"], ["person", "dog"])
-    # print(coco.dataset["categories"])
-    # coco.del_category(20)
-    # coco.del_category(catIds=18)
-    # print(isinstance(coco, CocoUtils))
-    # coco = COCO(PATH)
-    #
+    coco.adj_category(["clock", "airplane"], ["teddy bear","book"])
+    coco.del_category(["person", "dog", "asdf"])
+    coco.add_category(["person", "asdf"])
+    coco.split_train_val_test(val_ratio=.2, test_ratio=.1)
     # img = Image.open(IMAGE_PATH).convert('RGB')
     # annIds = coco.getAnnIds(imgIds=579900)
     # anns = coco.loadAnns(annIds)
