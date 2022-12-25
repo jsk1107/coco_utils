@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # Original author: jsk1107
+# version: 0.0.1
 
 import json
 import time
@@ -177,16 +176,3 @@ class CocoUtils(COCO):
 
         return coco_format
 
-
-if __name__ == '__main__':
-
-    # TEST CODE
-    PATH = "/home/ubuntu/data/annotations/instances_val2017.json"
-    with open(PATH, 'r') as f:
-        dataset = json.load(f)
-
-    coco = CocoUtils(dataset)
-    coco.adj_category(["clock", "airplane"], ["teddy bear","book"])
-    # coco.del_category(["person", "dog"])
-    # coco.add_category(["person", "asdf"])
-    # coco.split_train_val_test(val_ratio=.2, test_ratio=.1)
