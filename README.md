@@ -19,7 +19,7 @@ PATH = '{your_coco_json_file}'
 coco_util = CocoUtils(PATH)
 ```
 
-If you have already opened the COCO Json file and put it in memory, you can also instantiate it.
+Even if you have already opened a COCO Json file, you can create a class instance.
 
 ```python
 import json
