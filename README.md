@@ -1,7 +1,7 @@
 # coco_utils
+When pre-processing and post-processing image, sometimes you need to add, adjust, or remove categories in the coco json file. Also, train, val, and test should be separated from one json file. coco_utils is a module that provides these functions.
 
-You can easily modify category and annotation information of coco data format. Also, it can be separated into train, val, and test from one coco data format.
-
+Using this, you will be able to process coco json files easily.
 
 ## Install
 You only need to install the pycocotools.
