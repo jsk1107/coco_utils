@@ -25,7 +25,7 @@ class CocoUtils(COCO):
         self.createIndex()
 
     def del_category(self, catNms=[], catIds=[]):
-        catNms = catNms if self._isArrayLike(catNms) else [catNms]
+        catNms = catNms if isinstance(catNms, list) else [catNms]
         catIds = catIds if self._isArrayLike(catIds) else [catIds]
 
         if (len(catIds) == 0 and len(catNms) == 0) or (len(catIds) != 0 and len(catNms) != 0):
@@ -35,7 +35,7 @@ class CocoUtils(COCO):
         annotations = self.dataset['annotations']
 
         if len(catIds) == 0 and len(catNms) != 0:
-            catIds = self.getCatIds(catNms=[catNms])
+            catIds = self.getCatIds(catNms=catNms)
 
         cnt = 0
         # del category in categories
@@ -60,8 +60,9 @@ class CocoUtils(COCO):
 
     def adj_category(self, bf_catNms=[], af_catNms=[]):
         print('Adjust categories ... ')
-        bf_catNms = bf_catNms if self._isArrayLike(bf_catNms) else [bf_catNms]
-        af_catNms = af_catNms if self._isArrayLike(af_catNms) else [af_catNms]
+        bf_catNms = bf_catNms if isinstance(bf_catNms, list) else [bf_catNms]
+        af_catNms = af_catNms if isinstance(af_catNms, list) else [af_catNms]
+
         if len(bf_catNms) != len(af_catNms):
             raise Exception('the number of bf_catNms and af_catNms must be equal.')
 
@@ -72,11 +73,11 @@ class CocoUtils(COCO):
         while idx <= len(bf_catNms) - 1:
 
             bf_catNm, af_catNm = bf_catNms[idx], af_catNms[idx]
-            bf_id = self.getCatIds(catNms=[bf_catNm])
+            bf_id = self.getCatIds(catNms=bf_catNm)
             if len(bf_id) == 0:
                 raise Exception(f'{bf_catNm} does not exist')
 
-            af_id = self.getCatIds(catNms=[af_catNm])
+            af_id = self.getCatIds(catNms=af_catNm)
             if len(af_id) == 0:
                 for category in categories:
                     if category['name'] in bf_catNm:
@@ -102,9 +103,20 @@ class CocoUtils(COCO):
 
         print(f're-indexing...')
         self.createIndex()
-    def add_category(self):
-        pass
+    def add_category(self, catNms=[]):
+        catNms = catNms if isinstance(catNms, list) else [catNms]
+        catIds = self.getCatIds(catNms=catNms)
+        if len(catIds) != 0:
+            raise Exception(f'{catNms} already exists.')
 
+        categories = self.dataset['categories']
+        last_id = categories[-1]['id']
+        for catNm in catNms:
+            last_id += 1
+            categories.extend({'id': last_id, 'supercategory': catNm, 'name': catNm})
+
+        print(f're-indexing...')
+        self.createIndex()
     def sort_id(self):
         pass
 
@@ -119,6 +131,7 @@ class CocoUtils(COCO):
 
     def _isArrayLike(self, obj):
         return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
+
 
 if __name__ == '__main__':
     PATH = "/home/ubuntu/data/annotations/instances_val2017.json"
