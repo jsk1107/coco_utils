@@ -26,20 +26,13 @@ class CocoUtils(COCO):
         self.dataset = dataset
         self.createIndex()
 
-    def del_category(self, catNms=[], catIds=[]):
+    def del_category(self, catNms=[]):
         st = time.time()
         catNms = catNms if isinstance(catNms, list) else [catNms]
-        catIds = catIds if self._isArrayLike(catIds) else [catIds]
-
-        if (len(catIds) == 0 and len(catNms) == 0) or (len(catIds) != 0 and len(catNms) != 0):
-            raise Exception('Only one of catIds and catNms can be received as an argument.')
-
         categories = self.dataset['categories']
         annotations = self.dataset['annotations']
 
-        if len(catIds) == 0 and len(catNms) != 0:
-            catIds = self.getCatIds(catNms=catNms)
-
+        catIds = self.getCatIds(catNms=catNms)
         cnt = 0
         # del category in categories
         idx = 0
@@ -184,41 +177,16 @@ class CocoUtils(COCO):
 
         return coco_format
 
-    def transform_pascal2coco(self):
-        pass
 
-    def transform_coco2pascal(self):
-        pass
-
-    def _isArrayLike(self, obj):
-        return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
-
-
-if __name__ == '__main__':
-    PATH = "/home/ubuntu/data/annotations/instances_val2017.json"
-    IMAGE_PATH = "/home/ubuntu/data/val2017/000000579900.jpg"
-
-    with open(PATH, 'r') as f:
-        dataset = json.load(f)
-
-    # dog, 18, person, 20
-    # clock, 85, teddy bear, 88
-    # "supercategory": "vehicle",
-    # "id": 5,
-    # "name": "airplane"
-    #
-    # "supercategory": "vehicle",
-    # "id": 6,
-    # "name": "bus"
-
-    coco = CocoUtils(dataset)
-    coco.adj_category(["clock", "airplane"], ["teddy bear","book"])
-    coco.del_category(["person", "dog", "asdf"])
-    coco.add_category(["person", "asdf"])
-    coco.split_train_val_test(val_ratio=.2, test_ratio=.1)
-    # img = Image.open(IMAGE_PATH).convert('RGB')
-    # annIds = coco.getAnnIds(imgIds=579900)
-    # anns = coco.loadAnns(annIds)
-    # plt.imshow(img)
-    # coco.showAnns(anns=anns, draw_bbox=False)
-    # plt.show()
+# if __name__ == '__main__':
+#
+#     # TEST CODE
+#     PATH = "/home/ubuntu/data/annotations/instances_val2017.json"
+#     with open(PATH, 'r') as f:
+#         dataset = json.load(f)
+#
+#     coco = CocoUtils(dataset)
+#     coco.adj_category(["clock", "airplane"], ["teddy bear","book"])
+#     coco.del_category(["person", "dog"])
+#     coco.add_category(["person", "asdf"])
+#     coco.split_train_val_test(val_ratio=.2, test_ratio=.1)
